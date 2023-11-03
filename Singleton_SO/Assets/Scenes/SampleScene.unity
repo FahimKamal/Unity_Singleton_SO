@@ -677,6 +677,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   direction: {x: -1, y: -1, z: 0}
   speed: 50
+  singletonSO: {fileID: 11400000, guid: 01642f22db35da04d9df9b065bddcb91, type: 2}
 --- !u!1 &1746227525
 GameObject:
   m_ObjectHideFlags: 0
