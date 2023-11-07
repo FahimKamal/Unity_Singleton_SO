@@ -19,17 +19,24 @@ public class StringData
 
 public class DatabaseManager : MonoBehaviour
 {
-    //private string dbName => Path.Combine(Application.persistentDataPath, "Database.db");
-    private string dbName = "URL=file:Database.db";
+    private string dbName;
+    //private string dbName = "URL=file:Database.db";
     //private static string dbName ="/Database.db";
     private string tableName = "StringValues";
+
+    public string DbName { get => dbName; set => dbName = value; }
+
+    private void Awake()
+    {
+        DbName = Path.Combine(Application.persistentDataPath, "Database.db");
+    }
 
     /// <summary>
     /// Method to create a table if it doesn't exist already
     /// </summary>
     private void CreateDB()
     {
-        using(var connection = new SqliteConnection(dbName))
+        using(var connection = new SqliteConnection(DbName))
         {
             connection.Open();       
 
@@ -44,10 +51,11 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
+
     private void ReadAll()
     {
         var stringDataList = new List<StringData>();
-        using(var connection = new SqliteConnection(dbName))
+        using(var connection = new SqliteConnection(DbName))
         {
             connection.Open();
 
@@ -83,7 +91,7 @@ public class DatabaseManager : MonoBehaviour
     private void Start()
     {
         CreateDB();
-        Debug.Log("Database Location: " + dbName);
+        Debug.Log("Database Location: " + DbName);
         var tempList = new List<StringData>() { 
             new StringData("Fahim", "Kamal"), 
             new StringData("FK", "Ahmed"), 
