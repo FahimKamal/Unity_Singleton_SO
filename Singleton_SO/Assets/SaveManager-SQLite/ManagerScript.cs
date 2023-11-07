@@ -26,7 +26,7 @@ namespace SaveManager_SQLite{
         private void InsertData(){
             var key = keyInput.text.Trim();
             var value = valueInput.text.Trim();
-            databaseManager.InsertInto(key, value);
+            databaseManager.InsertInto<string>("StringValues",key, value);
         }
 
         private void FindData(){

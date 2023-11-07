@@ -1,16 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mono.Data.Sqlite;
-using Mono.Data;
-using System.IO;
-using System.Data;
 
 public class StringData
 {
     public StringData(string key, string value)
     {
-        this.Key = key;
+        Key = key;
         Value = value;
     }
 
@@ -21,84 +17,53 @@ public class StringData
 
 public class DatabaseManager : MonoBehaviour
 {
-    private string dbName = "Database";
-    //private string dbName = "URL=file:Database.db";
-    //private static string dbName ="/Database.db";
-    private string tableName = "StringValues";
+    [SerializeField] private string dbName = "Database";
+    [SerializeField] private string tableName = "StringValues";
 
     public string DbName { get => dbName; set => dbName = value; }
 
-    public void InsertInto(string key, string value){
-        string conn = SetDataBaseClass.SetDataBase(DbName + ".db");
-        IDbConnection dbcon;
-        IDbCommand dbcmd;
-        IDataReader reader;
+    public void InsertInto<T>(string tableName, string key, T value){
+        var dataBaseLocation = SetDataBaseClass.SetDataBase(DbName + ".db");
 
-        dbcon = new SqliteConnection(conn);
-        dbcon.Open();
-        dbcmd = dbcon.CreateCommand();
-        string  sqlQuery = "INSERT INTO " + tableName + " (Key, Value) VALUES ('"+key+"', '"+value+"');";
-        dbcmd.CommandText = sqlQuery;
-        reader = dbcmd.ExecuteReader();
-        while (reader.Read()){
-            
+        using (var dbConnection = new SqliteConnection(dataBaseLocation)){
+            dbConnection.Open();
+            using (var dbCommand = dbConnection.CreateCommand()){
+                var sqlQuery = "INSERT OR REPLACE INTO " + tableName + " (Key, Value) VALUES ('"+key+"', '"+value+"');";
+                dbCommand.CommandText = sqlQuery;
+                using (var reader = dbCommand.ExecuteReader()){
+                    while (reader.Read()){
+                        
+                    }
+                    reader.Close();
+                }
+                dbCommand.Dispose();
+            }
+            dbConnection.Close();
         }
-        reader.Close();
-        reader = null;
-        dbcmd.Dispose();
-        dbcmd = null;
-        dbcon.Close();
-        dbcon = null;
     }
     
     public bool FindItem(string key, out string value){ 
         value = null;
-        string conn = SetDataBaseClass.SetDataBase(DbName + ".db");
-        IDbConnection dbcon;
-        IDbCommand dbcmd;
-        IDataReader reader;
+        var dataBaseLocation = SetDataBaseClass.SetDataBase(DbName + ".db");
 
-        dbcon = new SqliteConnection(conn);
-        dbcon.Open();
-        dbcmd = dbcon.CreateCommand();
-        var sqlQuery = "SELECT Value FROM " + tableName + " WHERE Key = '"+key+"';";
-        dbcmd.CommandText = sqlQuery;
-        reader = dbcmd.ExecuteReader();
-        while (reader.Read()){
-            value = reader["Value"].ToString();
-        }
-        reader.Close();
-        reader = null;
-        dbcmd.Dispose();
-        dbcmd = null;
-        dbcon.Close();
-        dbcon = null;
-        if(value == null){
-            return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// Method to create a table if it doesn't exist already
-    /// </summary>
-    private void CreateDB()
-    {
-        using(var connection = new SqliteConnection(DbName))
-        {
-            connection.Open();       
-
-            using(var command = connection.CreateCommand())
-            {
-                // Create a table called `StringValues` with 2 fields: Key and Value
-                command.CommandText = "CREATE TABLE IF NOT EXISTS "+ tableName +" (Key VARCHAR(50), Value TEXT,PRIMARY KEY(Key));";
-                command.ExecuteNonQuery();
+        using (var dbConnection = new SqliteConnection(dataBaseLocation)){
+            dbConnection.Open();
+            using (var dbCommand = dbConnection.CreateCommand()){
+                var sqlQuery = "SELECT Value FROM " + tableName + " WHERE Key = '"+key+"';";
+                dbCommand.CommandText = sqlQuery;
+                using (var reader = dbCommand.ExecuteReader()){
+                    while (reader.Read()){
+                        value = reader["Value"].ToString();
+                    }
+                    reader.Close();
+                }
+                dbCommand.Dispose();
             }
-
-            connection.Close();
+            dbConnection.Close();
         }
+        
+        return value != null;
     }
-
 
     private void ReadAll()
     {
