@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mono.Data.Sqlite;
+using Mono.Data;
 using System.IO;
+using System.Data;
 
 public class StringData
 {
@@ -19,16 +21,62 @@ public class StringData
 
 public class DatabaseManager : MonoBehaviour
 {
-    private string dbName;
+    private string dbName = "Database";
     //private string dbName = "URL=file:Database.db";
     //private static string dbName ="/Database.db";
     private string tableName = "StringValues";
 
     public string DbName { get => dbName; set => dbName = value; }
 
-    private void Awake()
-    {
-        DbName = Path.Combine(Application.persistentDataPath, "Database.db");
+    public void InsertInto(string key, string value){
+        string conn = SetDataBaseClass.SetDataBase(DbName + ".db");
+        IDbConnection dbcon;
+        IDbCommand dbcmd;
+        IDataReader reader;
+
+        dbcon = new SqliteConnection(conn);
+        dbcon.Open();
+        dbcmd = dbcon.CreateCommand();
+        string  sqlQuery = "INSERT INTO " + tableName + " (Key, Value) VALUES ('"+key+"', '"+value+"');";
+        dbcmd.CommandText = sqlQuery;
+        reader = dbcmd.ExecuteReader();
+        while (reader.Read()){
+            
+        }
+        reader.Close();
+        reader = null;
+        dbcmd.Dispose();
+        dbcmd = null;
+        dbcon.Close();
+        dbcon = null;
+    }
+    
+    public bool FindItem(string key, out string value){ 
+        value = null;
+        string conn = SetDataBaseClass.SetDataBase(DbName + ".db");
+        IDbConnection dbcon;
+        IDbCommand dbcmd;
+        IDataReader reader;
+
+        dbcon = new SqliteConnection(conn);
+        dbcon.Open();
+        dbcmd = dbcon.CreateCommand();
+        var sqlQuery = "SELECT Value FROM " + tableName + " WHERE Key = '"+key+"';";
+        dbcmd.CommandText = sqlQuery;
+        reader = dbcmd.ExecuteReader();
+        while (reader.Read()){
+            value = reader["Value"].ToString();
+        }
+        reader.Close();
+        reader = null;
+        dbcmd.Dispose();
+        dbcmd = null;
+        dbcon.Close();
+        dbcon = null;
+        if(value == null){
+            return false;
+        }
+        return true;
     }
 
     /// <summary>
@@ -90,7 +138,7 @@ public class DatabaseManager : MonoBehaviour
 
     private void Start()
     {
-        CreateDB();
+        // CreateDB();
         Debug.Log("Database Location: " + DbName);
         var tempList = new List<StringData>() { 
             new StringData("Fahim", "Kamal"), 
